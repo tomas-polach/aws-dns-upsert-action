@@ -1,0 +1,42 @@
+name: "Upsert AWS DNS"
+description: "A custom action to create or retrieve the certificate for a domain"
+author: "Tomas Polach"
+
+inputs:
+  record-name:
+    description: "The name of the record to create or update"
+    required: true
+  record-type:
+    description: "The type of the record to create or update. E.g. A, CNAME, TXT, etc."
+    required: true
+  record-value:
+    description: "The value of the record to create or update"
+    required: true
+  record-ttl:
+    description: "The TTL of the record to create or update. E.g. 300, 600, 3600, etc."
+    required: false
+    default: '300'
+  role-arn:
+    description: "The ARN of the role to assume for creating the DNS record"
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - run: pip install boto3 -q
+      shell: bash
+
+    - run: python ${{ github.action_path }}/aws_upsert_dns_record.py
+      id: script
+      shell: bash
+      env:
+        RECORD_NAME: ${{ inputs['record-name'] }}
+        RECORD_TYPE: ${{ inputs['record-type'] }}
+        RECORD_VALUE: ${{ inputs['record-value'] }}
+        RECORD_TTL: ${{ inputs['record-ttl'] }}
+        ROLE_ARN: ${{ inputs['role-arn'] }}
